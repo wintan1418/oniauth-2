@@ -3,6 +3,31 @@
 class Users::OmniauthCallbacksController < Devise::OmniauthCallbacksController
   # You should configure your model like this:
   # devise :omniauthable, omniauth_providers: [:twitter]
+  def google_auth2
+    user = User.from_omniauth(auth)
+     if user.present?
+      sign_out_all_scopes
+      flash[:success] = t
+      'devise.omiauth_callbacks.success', kind: 'Google' sign_in_andredirect user, event: :authentication
+     else
+      flash[:alert] = t 'devise.omniauth_callbacks.failure', kind: 'Google', reason: "#{auth.info.email} is not authorized."
+      redirect_to new_user_session_path
+     end
+  end
+
+  protected
+  def after_inactive_sign_up_path_for(scope)
+    new_user_session_path
+  end
+
+  def after_sign_in_path_for(resource_or_scope)
+    stored-location_for(resource_or_scope) || root_path
+  end
+
+  private
+   def auth
+    @auth ||= request.env['omniauth.auth']
+   end
 
   # You should also create an action method in this controller like this:
   # def twitter
